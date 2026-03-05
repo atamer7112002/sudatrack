@@ -1427,86 +1427,110 @@ class _ReviewShipmentPageWidgetState extends State<ReviewShipmentPageWidget> {
                                               : null;
 
                                       return FFButtonWidget(
-                                        onPressed: () async {
-                                          // Generate receipt number atomically only when confirming
-                                          final receiptData =
-                                              await callGetNextReceiptNumber();
-                                          final newReceiptNumber =
-                                              receiptData['receiptNumber'];
+                                        onPressed: _model.isSaving
+                                            ? null
+                                            : () async {
+                                                if (_model.isSaving) return;
+                                                _model.isSaving = true;
+                                                safeSetState(() {});
 
-                                          await ShipmentsRecord.collection
-                                              .doc()
-                                              .set({
-                                            ...createShipmentsRecordData(
-                                              receiptNumber: newReceiptNumber,
-                                              tripId: widget.tripRef,
-                                              senderName: widget.senderName,
-                                              senderPhone: widget.senderPhone,
-                                              receiverName: widget.receiverName,
-                                              receiverPhone:
-                                                  widget.receiverPhone,
-                                              cityId:
-                                                  rowCitiesRecord?.reference,
-                                              amount: widget.amount,
-                                              paymentMethod:
-                                                  widget.paymentMethod,
-                                              handlingType: widget.handle,
-                                              notes: widget.notes,
-                                              createdBy: currentUserReference,
-                                              smsSent: false,
-                                              senderPhone2: widget.senderPhone2,
-                                              receiverPhone2:
-                                                  widget.receiverPhone2,
-                                              smsErrorMessage: 'null',
-                                              smsStatus: 'pending',
-                                              cityName: widget.cityItem,
-                                            ),
-                                            ...mapToFirestore(
-                                              {
-                                                'createdAt': FieldValue
-                                                    .serverTimestamp(),
-                                                'items':
-                                                    getShipmentItemListFirestoreData(
-                                                  widget.itemsList,
-                                                ),
+                                                try {
+                                                  // Generate receipt number atomically only when confirming
+                                                  final receiptData =
+                                                      await callGetNextReceiptNumber();
+                                                  final newReceiptNumber =
+                                                      receiptData[
+                                                          'receiptNumber'];
+
+                                                  await ShipmentsRecord
+                                                      .collection
+                                                      .doc()
+                                                      .set({
+                                                    ...createShipmentsRecordData(
+                                                      receiptNumber:
+                                                          newReceiptNumber,
+                                                      tripId: widget.tripRef,
+                                                      senderName:
+                                                          widget.senderName,
+                                                      senderPhone:
+                                                          widget.senderPhone,
+                                                      receiverName:
+                                                          widget.receiverName,
+                                                      receiverPhone:
+                                                          widget.receiverPhone,
+                                                      cityId: rowCitiesRecord
+                                                          ?.reference,
+                                                      amount: widget.amount,
+                                                      paymentMethod:
+                                                          widget.paymentMethod,
+                                                      handlingType:
+                                                          widget.handle,
+                                                      notes: widget.notes,
+                                                      createdBy:
+                                                          currentUserReference,
+                                                      smsSent: false,
+                                                      senderPhone2:
+                                                          widget.senderPhone2,
+                                                      receiverPhone2:
+                                                          widget.receiverPhone2,
+                                                      smsErrorMessage: 'null',
+                                                      smsStatus: 'pending',
+                                                      cityName: widget.cityItem,
+                                                    ),
+                                                    ...mapToFirestore(
+                                                      {
+                                                        'createdAt': FieldValue
+                                                            .serverTimestamp(),
+                                                        'items':
+                                                            getShipmentItemListFirestoreData(
+                                                          widget.itemsList,
+                                                        ),
+                                                      },
+                                                    ),
+                                                  });
+                                                  if (Navigator.of(context)
+                                                      .canPop()) {
+                                                    context.pop();
+                                                  }
+                                                  context.pushNamed(
+                                                    AgentHomePageWidget
+                                                        .routeName,
+                                                    extra: <String, dynamic>{
+                                                      '__transition_info__':
+                                                          const TransitionInfo(
+                                                        hasTransition: true,
+                                                        transitionType:
+                                                            PageTransitionType
+                                                                .fade,
+                                                      ),
+                                                    },
+                                                  );
+
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        'تم إضافة الشحنة بنجاح ✅',
+                                                        style: GoogleFonts
+                                                            .readexPro(
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .alternate,
+                                                        ),
+                                                      ),
+                                                      duration: const Duration(
+                                                          milliseconds: 4000),
+                                                      backgroundColor:
+                                                          const Color(
+                                                              0xFF2913E7),
+                                                    ),
+                                                  );
+                                                } catch (e) {
+                                                  _model.isSaving = false;
+                                                  safeSetState(() {});
+                                                  rethrow;
+                                                }
                                               },
-                                            ),
-                                          });
-                                          if (Navigator.of(context).canPop()) {
-                                            context.pop();
-                                          }
-                                          context.pushNamed(
-                                            AgentHomePageWidget.routeName,
-                                            extra: <String, dynamic>{
-                                              '__transition_info__':
-                                                  const TransitionInfo(
-                                                hasTransition: true,
-                                                transitionType:
-                                                    PageTransitionType.fade,
-                                              ),
-                                            },
-                                          );
-
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'تم إضافة الشحنة بنجاح ✅',
-                                                style: GoogleFonts.readexPro(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .alternate,
-                                                ),
-                                              ),
-                                              duration: const Duration(
-                                                  milliseconds: 4000),
-                                              backgroundColor:
-                                                  const Color(0xFF2913E7),
-                                            ),
-                                          );
-
-                                          safeSetState(() {});
-                                        },
                                         text: 'تأكيد وحفظ',
                                         options: FFButtonOptions(
                                           height: 50.0,
