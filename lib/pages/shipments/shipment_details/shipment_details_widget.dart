@@ -1342,7 +1342,10 @@ class _ShipmentDetailsWidgetState extends State<ShipmentDetailsWidget> {
                                           child: Padding(
                                             padding: MediaQuery.viewInsetsOf(
                                                 context),
-                                            child: TransferBottomSheetWidget(),
+                                            child: TransferBottomSheetWidget(
+                                              shipmentRef:
+                                                  widget.shipmentRef!.reference,
+                                            ),
                                           ),
                                         );
                                       },
